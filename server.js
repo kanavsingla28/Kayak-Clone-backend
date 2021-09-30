@@ -40,14 +40,24 @@ const Cars = mongoose.model("car",carsSchema)
 
 app.get("/",(req,res)=>{
     res.send({"All Endpoints":"/",
-    "All Cities":"/cities"
+    "GET Cities":"/cities",
+    "GET Cars":"/cars",
+    "GET Cars by City":"/cars/city/:city"
     })
 })
 
 //------------- City CRUD OPERATIONS Start -------------//
 // Get All cities
 app.get("/cities", async (req,res)=>{
-    const cities = await City.find().lean().exec();
+    let cities;
+    let searchName = req.query.name;
+    if(req.query.name!==undefined){
+        // searchName below to convert first character to uppercase
+        let finalName = searchName.slice(0,1).toUpperCase() + searchName.slice(1);
+        cities = await City.find({city:{$regex:finalName}}).lean().exec();
+    }else{
+        cities = await City.find().lean().exec();
+    }
     return res.status(200).send(cities);
 })
 // Create new city

@@ -93,7 +93,7 @@ app.post("/user/signup", async (req,res)=>{
 app.post("/user/login", async(req,res)=>{
     const existingUser = await User.find({$and:[{email:{$eq:req.body.email}} ,{password:{$eq:req.body.password}}]})
     if(existingUser.length!=0){
-        return res.status(201).send({"status":"OK","details":"user authenticated","user_id":existingUser[0]._id});
+        return res.status(201).send({"status":"OK","details":"user authenticated","user_id":existingUser[0]._id,"user_name":existingUser[0].first_name + " " + existingUser[0].last_name});
     }else{
         return res.status(201).send({"status":"error","details":"Invalid Credentials"});
     }

@@ -75,6 +75,13 @@ app.get("/",(req,res)=>{
 //------------- User CRUD OPERATIONS Start -------------//
 // Create new User
 app.post("/user/signup", async (req,res)=>{
+    if(req.body.first_name===undefined ||
+        req.body.last_name===undefined ||
+        req.body.email===undefined ||
+        req.body.password===undefined ||
+        req.body.phone_num===undefined){
+            return res.send({"status":"error","details":"Some Field missing from body"})
+        }
     const existingUser = await User.find({email:{$eq:req.body.email}})
     if(existingUser.length==0){
         const user = await User.create(req.body);

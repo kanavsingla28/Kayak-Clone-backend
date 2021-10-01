@@ -1,16 +1,33 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config()
 
 const connect = ()=>{
     return mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.10pqn.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`)
 }
+app.use(cors());
 app.use(express.json());
+//------------- Users Schema Start -------------//
+const userSchema = new mongoose.Schema({
+    first_name:{type:String, required:true},
+    last_name:{type:String, required:true},
+    email:{type:String, required:true},
+    password:{type:String, required:true},
+    phone_num:{type:String, required:true}
+},{
+    versionKey:false,
+    timestamps:true
+})
+const User = new mongoose.model("user",userSchema);
+//------------- Users Schema End -------------//
+
 //------------- City Schema Start -------------//
 const citySchema = new mongoose.Schema({
     city:{type: String, required:true},
-    state:{type:String, required:true}
+    state:{type:String, required:true},
+    pickup_address:{type:String, required:false}
 },{
     versionKey:false,
     timestamps:true
@@ -38,13 +55,45 @@ const Cars = mongoose.model("car",carsSchema)
 //------------- Cars Schema End -------------//
 
 
+//------------- Trips Schema Start -------------//
+const tripSchema = mongoose.Schema({
+    car:  {type: mongoose.Schema.Types.ObjectId, ref:"car", required:true},
+    user: {type: mongoose.Schema.Types.ObjectId, ref:"user", required:true},
+    pick_up_date:{type: Date, required:true},
+    drop_off_date:{type:Date, required:true}
+})
+//------------- Trips Schema End -------------//
+
 app.get("/",(req,res)=>{
     res.send({"All Endpoints":"/",
     "GET Cities":"/cities",
+    "GET Search Cities":"/cities?name=<city name>",
     "GET Cars":"/cars",
-    "GET Cars by City":"/cars/city/:city"
+    "GET Cars by City":"/cars/city/<city name>"
     })
 })
+//------------- User CRUD OPERATIONS Start -------------//
+// Create new User
+app.post("/user/signup", async (req,res)=>{
+    const existingUser = await User.find({email:{$eq:req.body.email}})
+    if(existingUser.length==0){
+        const user = await User.create(req.body);
+        return res.status(201).send({"status":"OK","New User":user});
+    }else{
+        return res.status(201).send({"status":"error","details":"User Already Exists"});
+    }
+})
+app.post("/user/login", async(req,res)=>{
+    const existingUser = await User.find({$and:[{email:{$eq:req.body.email}} ,{password:{$eq:req.body.password}}]})
+    if(existingUser.length!=0){
+        return res.status(201).send({"status":"OK","details":"user authenticated"});
+    }else{
+        return res.status(201).send({"status":"error","details":"Invalid Credentials"});
+    }
+})
+//------------- User CRUD OPERATIONS End -------------//
+
+
 
 //------------- City CRUD OPERATIONS Start -------------//
 // Get All cities
@@ -104,7 +153,7 @@ app.get("/cars/:id", async(req,res)=>{
 app.get("/cars/city/:city", async(req,res)=>{
     const cardata = await Cars.find({city:{$eq:req.params.city}}).populate({
         path:"city",
-        select:["city","state"]
+        select:["city","state","pickup_address"]
     }).lean().exec();
     return res.status(200).send(cardata);
 })

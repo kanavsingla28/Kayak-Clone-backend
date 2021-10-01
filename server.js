@@ -85,7 +85,7 @@ app.post("/user/signup", async (req,res)=>{
     const existingUser = await User.find({email:{$eq:req.body.email}})
     if(existingUser.length==0){
         const user = await User.create(req.body);
-        return res.status(201).send({"status":"OK","New User":user});
+        return res.status(201).send({"status":"OK","user":user});
     }else{
         return res.status(201).send({"status":"error","details":"User Already Exists"});
     }
@@ -93,7 +93,7 @@ app.post("/user/signup", async (req,res)=>{
 app.post("/user/login", async(req,res)=>{
     const existingUser = await User.find({$and:[{email:{$eq:req.body.email}} ,{password:{$eq:req.body.password}}]})
     if(existingUser.length!=0){
-        return res.status(201).send({"status":"OK","details":"user authenticated"});
+        return res.status(201).send({"status":"OK","details":"user authenticated","user_id":existingUser[0]._id});
     }else{
         return res.status(201).send({"status":"error","details":"Invalid Credentials"});
     }

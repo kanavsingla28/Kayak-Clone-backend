@@ -154,8 +154,9 @@ app.post("/user/login", async(req,res)=>{
             "status":"OK",
             "details":"user authenticated",
             "user_id":existingUser[0]._id,
-            "user_name":existingUser[0].first_name + " " + existingUser[0].last_name,
-            "user_phone_num":existingUser[0].phone_num,
+            "first_name":existingUser[0].first_name,
+            "last_name":existingUser[0].last_name,
+            "phone_num":existingUser[0].phone_num,
             "user_email":existingUser[0].email
         });
     }else{
